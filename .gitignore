@@ -2,3 +2,5 @@
 ./uploads
 venv
 uploads
+__pycache__
+instance
