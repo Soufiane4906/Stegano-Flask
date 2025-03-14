@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 import tensorflow as tf
 from stegano import lsb
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify , send_from_directory
 from flask_cors import CORS
 from PIL import Image
 
@@ -15,7 +15,7 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Load AI Model
-MODEL_PATH = "model.h5"
+MODEL_PATH = "modelFakeReak.h5"
 model = None
 if os.path.exists(MODEL_PATH):
     model = tf.keras.models.load_model(MODEL_PATH)
@@ -62,7 +62,11 @@ def add_steganography():
 
     output_filepath = embed_steganography(filepath, signature)
 
-    return jsonify({"message": "Signature ajoutée avec succès", "image_path": output_filepath})
+    # ✅ Convert Windows-style `\` to `/` and return a **public URL**
+    output_filename = os.path.basename(output_filepath)
+    public_url = f"http://localhost:5000/uploads/{output_filename}"
+
+    return jsonify({"message": "Signature ajoutée avec succès", "image_url": public_url})
 
 
 # 📌 Steganography Analysis (Detect Hidden Message)
@@ -72,6 +76,11 @@ def analyze_steganography(image_path):
         return {"signature_detected": True, "signature": hidden_message} if hidden_message else {"signature_detected": False}
     except Exception as e:
         return {"error": "Impossible to detect message."}
+
+
+@app.route('/uploads/<filename>')
+def get_uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
 # 📌 Steganography Embedding (Hide Message)
