@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   stegano-flask:
-    build: .
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
     ports:
       - "5000:5000"
     environment:
@@ -12,10 +12,10 @@ services:
       - MAX_CONTENT_LENGTH=16777216
       - AI_MODEL_PATH=modelFakeReal.h5
     volumes:
-      - ./uploads:/app/uploads
-      - ./instance:/app/instance
-      - ./logs:/app/logs
-      - ./modelFakeReal.h5:/app/modelFakeReal.h5
+      - ../uploads:/app/uploads
+      - ../instance:/app/instance
+      - ../logs:/app/logs
+      - ../models/modelFakeReal.h5:/app/modelFakeReal.h5
     restart: unless-stopped
 
   # Service optionnel pour une base de données PostgreSQL
