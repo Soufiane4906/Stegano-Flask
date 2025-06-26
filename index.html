@@ -1,33 +1,316 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Analyseur d'Images</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Stéganographie Flask - Interface Complète</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+        }
+
+        .file-input {
+            margin: 20px 0;
+        }
+
+        .file-input input[type="file"] {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .results pre {
+            background: #343a40;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
 </head>
 <body>
-    <h1>Analyseur d'Images</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 API Stéganographie Flask</h1>
+            <p>Interface de Test - Version Simple</p>
+        </div>
 
-    <form id="uploadForm">
-        <input type="file" id="imageFile" accept="image/*">
-        <button type="submit">Analyser</button>
-    </form>
+        <div class="content">
+            <div class="status-bar">
+                <strong>📊 Statut:</strong> <span id="statusText">Chargement...</span>
+            </div>
 
-    <div id="results" style="margin-top: 20px;"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="checkHealth()">🩺 Vérifier Santé</button>
+                <button class="btn btn-primary" onclick="testAPI()">🧪 Tester API</button>
+            </div>
+
+            <div class="upload-section">
+                <h3>📤 Upload d'Image</h3>
+                <p>Sélectionnez une image pour tester l'endpoint d'upload</p>
+                <div class="file-input">
+                    <input type="file" id="imageFile" accept="image/*">
+                </div>
+                <button class="btn btn-success" onclick="uploadImage()">📤 Uploader Image</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Traitement en cours...</p>
+            </div>
+
+            <div id="results" class="results" style="display: none;">
+                <h4>📋 Résultats:</h4>
+                <pre id="resultsContent"></pre>
+            </div>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        const API_BASE = 'http://localhost:5000';
 
-            const formData = new FormData();
-            formData.append('file', document.getElementById('imageFile').files[0]);
+        // Vérifier le statut au chargement
+        window.onload = function() {
+            checkHealth();
+        };
 
-            const response = await fetch('http://localhost:5000/upload', {
-                method: 'POST',
-                body: formData
-            });
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
 
-            const data = await response.json();
-            document.getElementById('results').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-        });
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showResults(data, isError = false) {
+            hideLoading();
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            resultsContent.textContent = JSON.stringify(data, null, 2);
+            resultsDiv.style.display = 'block';
+
+            if (isError) {
+                resultsDiv.style.borderLeftColor = '#dc3545';
+            } else {
+                resultsDiv.style.borderLeftColor = '#28a745';
+            }
+        }
+
+        async function checkHealth() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                document.getElementById('statusText').textContent = 'API Fonctionnelle ✅';
+                document.getElementById('statusText').parentElement.style.borderLeftColor = '#28a745';
+
+                showResults(data);
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'API Hors Ligne ❌';
+                document.getElementById('statusText').parentElement.style.borderLeftColor = '#dc3545';
+
+                showResults({
+                    error: 'Impossible de contacter l\'API',
+                    details: error.message,
+                    suggestion: 'Vérifiez que le serveur Flask est démarré sur http://localhost:5000'
+                }, true);
+            }
+        }
+
+        async function testAPI() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/test`);
+                const data = await response.json();
+                showResults(data);
+            } catch (error) {
+                showResults({
+                    error: 'Erreur lors du test API',
+                    details: error.message
+                }, true);
+            }
+        }
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showResults({
+                    error: 'Aucun fichier sélectionné',
+                    message: 'Veuillez sélectionner une image avant de continuer'
+                }, true);
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const response = await fetch(`${API_BASE}/api/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                showResults(data, !response.ok);
+
+            } catch (error) {
+                showResults({
+                    error: 'Erreur lors de l\'upload',
+                    details: error.message,
+                    suggestion: 'Vérifiez que le serveur est démarré et que l\'endpoint /api/upload existe'
+                }, true);
+            }
+        }
     </script>
 </body>
 </html>

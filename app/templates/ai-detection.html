@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection IA - Stegano-Flask</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            padding-top: 50px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-custom:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+        .preview-container {
+            max-height: 400px;
+            overflow: hidden;
+            border-radius: 10px;
+            border: 3px dashed #dee2e6;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        .preview-container.dragover {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        .preview-container img {
+            width: 100%;
+            height: auto;
+            max-height: 350px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        .confidence-bar {
+            height: 25px;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+        }
+        .confidence-indicator {
+            height: 100%;
+            border-radius: 15px;
+            background: white;
+            transition: width 0.5s ease;
+        }
+        .result-card {
+            border-left: 5px solid;
+            border-radius: 10px;
+        }
+        .result-real {
+            border-left-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+        .result-fake {
+            border-left-color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        .result-uncertain {
+            border-left-color: #ffc107;
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-shield-alt"></i> Stegano-Flask
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="steganography.html">Stéganographie</a>
+                <a class="nav-link active" href="ai-detection.html">Détection IA</a>
+                <a class="nav-link" href="similarity.html">Similarité</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center text-white mb-4">
+                    <h1><i class="fas fa-robot"></i> Détection d'Images IA</h1>
+                    <p class="lead">Détectez si une image a été générée par une intelligence artificielle</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-upload"></i> Analyse d'Image</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="aiDetectionForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label">Sélectionnez une image à analyser</label>
+                                <input type="file" class="form-control" id="aiImage" accept="image/*" required>
+                            </div>
+
+                            <div id="dropZone" class="preview-container mb-3">
+                                <div id="dropZoneContent">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Glissez-déposez une image ici ou cliquez pour sélectionner</p>
+                                </div>
+                                <img id="previewImage" style="display: none;">
+                            </div>
+
+                            <button type="submit" class="btn btn-custom w-100">
+                                <i class="fas fa-search"></i> Analyser l'Image
+                            </button>
+                        </form>
+
+                        <div id="analysisProgress" class="mt-3" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
+                                    <i class="fas fa-brain"></i> Analyse IA en cours...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-chart-bar"></i> Résultats de l'Analyse</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="analysisResult" class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <p>Sélectionnez une image pour commencer l'analyse</p>
+                        </div>
+
+                        <div id="detectionResult" style="display: none;">
+                            <div class="result-card p-3 mb-3">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <i id="resultIcon" class="fas fa-3x"></i>
+                                    </div>
+                                    <div class="col">
+                                        <h4 id="resultTitle" class="mb-1"></h4>
+                                        <p id="resultDescription" class="mb-0 text-muted"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Niveau de confiance</label>
+                                <div class="confidence-bar position-relative">
+                                    <div id="confidenceIndicator" class="confidence-indicator"></div>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <span id="confidenceText" class="fw-bold"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <small class="text-muted">Probabilité Réelle</small>
+                                        <div id="realProbability" class="fw-bold text-success"></div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2">
+                                        <small class="text-muted">Probabilité IA</small>
+                                        <div id="aiProbability" class="fw-bold text-danger"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations techniques -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-info-circle"></i> Comment fonctionne la détection ?</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6><i class="fas fa-brain"></i> Réseau de neurones</h6>
+                                <p>Utilise un modèle TensorFlow entraîné pour détecter les artefacts caractéristiques des images générées par IA.</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6><i class="fas fa-eye"></i> Analyse visuelle</h6>
+                                <p>Examine les patterns, textures et incohérences typiques des générateurs d'images IA.</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6><i class="fas fa-chart-line"></i> Score de confiance</h6>
+                                <p>Fournit un pourcentage de certitude basé sur l'analyse des caractéristiques de l'image.</p>
+                            </div>
+                            <div class="col-md-3">
+                                <h6><i class="fas fa-shield-alt"></i> Précision</h6>
+                                <p>Modèle entraîné sur des milliers d'images réelles et générées par IA pour une haute précision.</p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Note :</strong> Cette détection est basée sur des modèles statistiques et peut ne pas être fiable à 100%.
+                            Utilisez-la comme un outil d'aide à la décision.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Gestion du drag & drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('aiImage');
+        const previewImage = document.getElementById('previewImage');
+        const dropZoneContent = document.getElementById('dropZoneContent');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    dropZoneContent.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Gestion du formulaire
+        document.getElementById('aiDetectionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const imageFile = document.getElementById('aiImage').files[0];
+
+            if (!imageFile) {
+                showError('Veuillez sélectionner une image.');
+                return;
+            }
+
+            formData.append('file', imageFile);
+
+            showProgress(true);
+            clearResult();
+
+            try {
+                const response = await fetch('/api/images/ai-detection', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayResult(result);
+                } else {
+                    showError(`Erreur: ${result.error || 'Erreur inconnue'}`);
+                }
+            } catch (error) {
+                showError(`Erreur de connexion: ${error.message}`);
+            } finally {
+                showProgress(false);
+            }
+        });
+
+        function showProgress(show) {
+            document.getElementById('analysisProgress').style.display = show ? 'block' : 'none';
+        }
+
+        function clearResult() {
+            document.getElementById('analysisResult').innerHTML = '';
+        }
+
+        function showError(message) {
+            document.getElementById('analysisResult').innerHTML =
+                `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
+        }
+
+        function displayResult(result) {
+            const aiProbability = result.ai_probability || 0;
+            const realProbability = 1 - aiProbability;
+            const confidence = Math.abs(aiProbability - 0.5) * 2; // Confiance basée sur la distance de 0.5
+
+            // Déterminer le type de résultat
+            let resultType, resultTitle, resultDescription, resultIcon;
+
+            if (confidence < 0.3) {
+                resultType = 'uncertain';
+                resultTitle = 'Résultat Incertain';
+                resultDescription = 'L\'analyse n\'est pas suffisamment fiable pour déterminer l\'origine de l\'image.';
+                resultIcon = 'fas fa-question-circle text-warning';
+            } else if (aiProbability > 0.5) {
+                resultType = 'fake';
+                resultTitle = 'Image Générée par IA';
+                resultDescription = 'Cette image semble avoir été générée par une intelligence artificielle.';
+                resultIcon = 'fas fa-robot text-danger';
+            } else {
+                resultType = 'real';
+                resultTitle = 'Image Réelle';
+                resultDescription = 'Cette image semble être une photographie réelle.';
+                resultIcon = 'fas fa-camera text-success';
+            }
+
+            // Mettre à jour l'interface
+            document.getElementById('resultIcon').className = resultIcon;
+            document.getElementById('resultTitle').textContent = resultTitle;
+            document.getElementById('resultDescription').textContent = resultDescription;
+
+            // Mettre à jour la barre de confiance
+            document.getElementById('confidenceIndicator').style.width = `${confidence * 100}%`;
+            document.getElementById('confidenceText').textContent = `${(confidence * 100).toFixed(1)}%`;
+
+            // Mettre à jour les probabilités
+            document.getElementById('realProbability').textContent = `${(realProbability * 100).toFixed(1)}%`;
+            document.getElementById('aiProbability').textContent = `${(aiProbability * 100).toFixed(1)}%`;
+
+            // Appliquer la classe CSS appropriée
+            const resultCard = document.querySelector('.result-card');
+            resultCard.className = `result-card p-3 mb-3 result-${resultType}`;
+
+            // Afficher le résultat
+            document.getElementById('detectionResult').style.display = 'block';
+            document.getElementById('analysisResult').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

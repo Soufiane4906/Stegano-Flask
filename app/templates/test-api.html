@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Stegano-Flask</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            padding-top: 50px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-custom:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+        .endpoint-card {
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        .endpoint-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .method-badge {
+            font-size: 0.8em;
+            padding: 0.25rem 0.5rem;
+        }
+        .json-response {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-pending { background-color: #ffc107; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .test-results {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-shield-alt"></i> Stegano-Flask
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="steganography.html">Stéganographie</a>
+                <a class="nav-link" href="ai-detection.html">Détection IA</a>
+                <a class="nav-link" href="similarity.html">Similarité</a>
+                <a class="nav-link active" href="test-api.html">Test API</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center text-white mb-4">
+                    <h1><i class="fas fa-flask"></i> Test de l'API</h1>
+                    <p class="lead">Testez et explorez tous les endpoints de l'API Stegano-Flask</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status général -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-heartbeat"></i> Status de l'API</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div id="apiStatus" class="mb-3">
+                                    <span class="status-indicator status-pending"></span>
+                                    <span>Vérification du status...</span>
+                                </div>
+                                <button class="btn btn-custom" onclick="checkAllEndpoints()">
+                                    <i class="fas fa-sync-alt"></i> Tester tous les endpoints
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Informations API</h6>
+                                        <div id="apiInfo">
+                                            <small class="text-muted">Chargement...</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endpoints disponibles -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-list"></i> Endpoints Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Endpoints généraux -->
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-success method-badge">GET</span>
+                                                <code>/</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="testEndpoint('/', 'GET')">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Page d'accueil de l'API</p>
+                                        <div id="status-/" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-success method-badge">GET</span>
+                                                <code>/health</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="testEndpoint('/health', 'GET')">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Vérification de la santé de l'API</p>
+                                        <div id="status-/health" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Endpoints d'images -->
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-warning method-badge">POST</span>
+                                                <code>/api/images/upload</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showImageUpload('upload')">
+                                                <i class="fas fa-upload"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Upload d'image</p>
+                                        <div id="status-/api/images/upload" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-warning method-badge">POST</span>
+                                                <code>/api/images/hide</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showImageUpload('hide')">
+                                                <i class="fas fa-eye-slash"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Cacher un message dans une image</p>
+                                        <div id="status-/api/images/hide" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-warning method-badge">POST</span>
+                                                <code>/api/images/reveal</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showImageUpload('reveal')">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Révéler un message caché</p>
+                                        <div id="status-/api/images/reveal" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-warning method-badge">POST</span>
+                                                <code>/api/images/ai-detection</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showImageUpload('ai-detection')">
+                                                <i class="fas fa-robot"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Détection d'image générée par IA</p>
+                                        <div id="status-/api/images/ai-detection" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-warning method-badge">POST</span>
+                                                <code>/api/images/similarity</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showImageUpload('similarity')">
+                                                <i class="fas fa-balance-scale"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Comparaison de similarité</p>
+                                        <div id="status-/api/images/similarity" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="endpoint-card card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <span class="badge bg-success method-badge">GET</span>
+                                                <code>/api/images/history</code>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="testEndpoint('/api/images/history', 'GET')">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                        </div>
+                                        <p class="mb-1">Historique des analyses</p>
+                                        <div id="status-/api/images/history" class="status-result"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultats des tests -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-terminal"></i> Résultats des Tests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="testResults" class="test-results">
+                            <p class="text-muted text-center">
+                                <i class="fas fa-info-circle"></i>
+                                Les résultats des tests s'afficheront ici
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour upload d'images -->
+    <div class="modal fade" id="imageUploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test avec Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="imageTestForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-control" id="testImage" accept="image/*" required>
+                        </div>
+                        <div id="additionalFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-custom" onclick="submitImageTest()">Tester</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        let currentEndpoint = '';
+        const modal = new bootstrap.Modal(document.getElementById('imageUploadModal'));
+
+        // Vérifier le status de l'API au chargement
+        window.onload = function() {
+            checkApiStatus();
+        };
+
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('/');
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('apiStatus').innerHTML =
+                        '<span class="status-indicator status-success"></span>API Active';
+                    document.getElementById('apiInfo').innerHTML = `
+                        <strong>Version:</strong> ${data.version || 'N/A'}<br>
+                        <strong>Status:</strong> ${data.status || 'N/A'}<br>
+                        <strong>Message:</strong> ${data.message || 'N/A'}
+                    `;
+                } else {
+                    throw new Error('API non accessible');
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML =
+                    '<span class="status-indicator status-error"></span>API Inactive';
+                document.getElementById('apiInfo').innerHTML =
+                    '<span class="text-danger">Erreur de connexion</span>';
+            }
+        }
+
+        async function testEndpoint(endpoint, method) {
+            const statusElement = document.getElementById(`status-${endpoint}`);
+            statusElement.innerHTML = '<span class="status-indicator status-pending"></span>Test en cours...';
+
+            try {
+                const response = await fetch(endpoint, { method: method });
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusElement.innerHTML = '<span class="status-indicator status-success"></span>OK';
+                    addTestResult(endpoint, method, response.status, data, null);
+                } else {
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span>Erreur';
+                    addTestResult(endpoint, method, response.status, data, null);
+                }
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-error"></span>Erreur';
+                addTestResult(endpoint, method, 0, null, error.message);
+            }
+        }
+
+        function showImageUpload(endpoint) {
+            currentEndpoint = endpoint;
+            const additionalFields = document.getElementById('additionalFields');
+            additionalFields.innerHTML = '';
+
+            // Ajouter des champs spécifiques selon l'endpoint
+            if (endpoint === 'hide') {
+                additionalFields.innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Message secret</label>
+                        <textarea class="form-control" id="secretMessage" rows="3" placeholder="Message à cacher..." required></textarea>
+                    </div>
+                `;
+            } else if (endpoint === 'similarity') {
+                additionalFields.innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Seconde image</label>
+                        <input type="file" class="form-control" id="testImage2" accept="image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Méthode</label>
+                        <select class="form-control" id="similarityMethod">
+                            <option value="phash">Perceptual Hash</option>
+                            <option value="dhash">Difference Hash</option>
+                            <option value="structural">Similarité Structurelle</option>
+                        </select>
+                    </div>
+                `;
+            }
+
+            modal.show();
+        }
+
+        async function submitImageTest() {
+            const formData = new FormData();
+            const image = document.getElementById('testImage').files[0];
+
+            if (!image) {
+                alert('Veuillez sélectionner une image');
+                return;
+            }
+
+            formData.append('image', image);
+
+            // Ajouter des champs spécifiques
+            if (currentEndpoint === 'hide') {
+                const message = document.getElementById('secretMessage').value;
+                if (!message) {
+                    alert('Veuillez saisir un message secret');
+                    return;
+                }
+                formData.append('message', message);
+            } else if (currentEndpoint === 'similarity') {
+                const image2 = document.getElementById('testImage2').files[0];
+                const method = document.getElementById('similarityMethod').value;
+                if (!image2) {
+                    alert('Veuillez sélectionner une seconde image');
+                    return;
+                }
+                formData.append('image2', image2);
+                formData.append('method', method);
+            }
+
+            const endpoint = `/api/images/${currentEndpoint}`;
+            const statusElement = document.getElementById(`status-${endpoint}`);
+
+            try {
+                statusElement.innerHTML = '<span class="status-indicator status-pending"></span>Test en cours...';
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusElement.innerHTML = '<span class="status-indicator status-success"></span>OK';
+                    addTestResult(endpoint, 'POST', response.status, data, null);
+                } else {
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span>Erreur';
+                    addTestResult(endpoint, 'POST', response.status, data, null);
+                }
+
+                modal.hide();
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-error"></span>Erreur';
+                addTestResult(endpoint, 'POST', 0, null, error.message);
+            }
+        }
+
+        function addTestResult(endpoint, method, status, data, error) {
+            const timestamp = new Date().toLocaleTimeString();
+            const resultsContainer = document.getElementById('testResults');
+
+            const resultHtml = `
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge ${status >= 200 && status < 300 ? 'bg-success' : 'bg-danger'}">${method}</span>
+                            <code>${endpoint}</code>
+                        </div>
+                        <div>
+                            <span class="badge ${status >= 200 && status < 300 ? 'bg-success' : 'bg-danger'}">${status}</span>
+                            <small class="text-muted">${timestamp}</small>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        ${error ?
+                            `<div class="alert alert-danger">Erreur: ${error}</div>` :
+                            `<div class="json-response"><pre><code class="language-json">${JSON.stringify(data, null, 2)}</code></pre></div>`
+                        }
+                    </div>
+                </div>
+            `;
+
+            if (resultsContainer.innerHTML.includes('Les résultats des tests')) {
+                resultsContainer.innerHTML = resultHtml;
+            } else {
+                resultsContainer.innerHTML = resultHtml + resultsContainer.innerHTML;
+            }
+
+            // Mettre en surbrillance la syntaxe JSON
+            Prism.highlightAll();
+        }
+
+        async function checkAllEndpoints() {
+            const endpoints = [
+                { path: '/', method: 'GET' },
+                { path: '/health', method: 'GET' },
+                { path: '/api/images/history', method: 'GET' }
+            ];
+
+            for (const endpoint of endpoints) {
+                await testEndpoint(endpoint.path, endpoint.method);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Délai entre les requêtes
+            }
+        }
+    </script>
+</body>
+</html>

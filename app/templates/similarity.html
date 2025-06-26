@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Similarité - Stegano-Flask</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            padding-top: 50px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-custom:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+        .image-upload-zone {
+            border: 3px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-upload-zone:hover {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+        .image-upload-zone.dragover {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .similarity-meter {
+            height: 30px;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #dc3545, #ffc107, #28a745);
+            position: relative;
+            overflow: hidden;
+        }
+        .similarity-indicator {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.8s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .method-card {
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .method-card.selected {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+        .vs-divider {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-shield-alt"></i> Stegano-Flask
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="steganography.html">Stéganographie</a>
+                <a class="nav-link" href="ai-detection.html">Détection IA</a>
+                <a class="nav-link active" href="similarity.html">Similarité</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center text-white mb-4">
+                    <h1><i class="fas fa-balance-scale"></i> Comparaison de Similarité</h1>
+                    <p class="lead">Comparez la similarité entre deux images avec différents algorithmes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload des images -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-images"></i> Sélection des Images</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="similarityForm" enctype="multipart/form-data">
+                            <div class="comparison-grid">
+                                <!-- Image 1 -->
+                                <div>
+                                    <label class="form-label">Image 1</label>
+                                    <div id="dropZone1" class="image-upload-zone">
+                                        <div id="uploadContent1">
+                                            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-2">Première image</p>
+                                            <button type="button" class="btn btn-outline-primary btn-sm">Sélectionner</button>
+                                        </div>
+                                        <img id="preview1" class="image-preview" style="display: none;">
+                                    </div>
+                                    <input type="file" id="image1" accept="image/*" style="display: none;" required>
+                                </div>
+
+                                <!-- VS -->
+                                <div class="vs-divider">VS</div>
+
+                                <!-- Image 2 -->
+                                <div>
+                                    <label class="form-label">Image 2</label>
+                                    <div id="dropZone2" class="image-upload-zone">
+                                        <div id="uploadContent2">
+                                            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-2">Seconde image</p>
+                                            <button type="button" class="btn btn-outline-primary btn-sm">Sélectionner</button>
+                                        </div>
+                                        <img id="preview2" class="image-preview" style="display: none;">
+                                    </div>
+                                    <input type="file" id="image2" accept="image/*" style="display: none;" required>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-custom btn-lg">
+                                    <i class="fas fa-search"></i> Comparer les Images
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Méthodes de comparaison -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-cogs"></i> Méthodes de Comparaison</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="method-card card h-100 selected" data-method="phash">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-fingerprint fa-2x text-primary mb-3"></i>
+                                        <h6>Perceptual Hash (pHash)</h6>
+                                        <p class="small text-muted">Détecte les modifications de contenu</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="method-card card h-100" data-method="dhash">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-th fa-2x text-success mb-3"></i>
+                                        <h6>Difference Hash (dHash)</h6>
+                                        <p class="small text-muted">Sensible aux différences locales</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="method-card card h-100" data-method="structural">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-project-diagram fa-2x text-warning mb-3"></i>
+                                        <h6>Similarité Structurelle</h6>
+                                        <p class="small text-muted">Compare la structure globale</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultats -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-chart-bar"></i> Résultats de la Comparaison</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="comparisonProgress" class="text-center" style="display: none;">
+                            <div class="progress mb-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
+                                    <i class="fas fa-sync-alt"></i> Comparaison en cours...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="comparisonResult" class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <p>Sélectionnez deux images pour commencer la comparaison</p>
+                        </div>
+
+                        <div id="similarityResults" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6>Score de Similarité Global</h6>
+                                    <div class="similarity-meter mb-3">
+                                        <div id="similarityIndicator" class="similarity-indicator" style="width: 0%">
+                                            <span id="similarityScore">0%</span>
+                                        </div>
+                                    </div>
+
+                                    <div id="detailedResults">
+                                        <!-- Les résultats détaillés seront affichés ici -->
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-header">
+                                            <h6><i class="fas fa-info-circle"></i> Interprétation</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="interpretation">
+                                                <!-- L'interprétation sera affichée ici -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations techniques -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5><i class="fas fa-book"></i> Guide des Méthodes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-fingerprint text-primary"></i> Perceptual Hash</h6>
+                                <p class="small">Génère un hash basé sur la perception visuelle. Résistant aux redimensionnements et compressions légères.</p>
+                                <div class="badge bg-primary">Recommandé pour les doublons</div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-th text-success"></i> Difference Hash</h6>
+                                <p class="small">Compare les différences de luminosité entre pixels adjacents. Bon pour détecter les modifications locales.</p>
+                                <div class="badge bg-success">Sensible aux détails</div>
+                            </div>
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-project-diagram text-warning"></i> Similarité Structurelle</h6>
+                                <p class="small">Analyse la structure globale et les patterns de l'image. Utile pour comparer la composition.</p>
+                                <div class="badge bg-warning text-dark">Analyse avancée</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedMethod = 'phash';
+
+        // Gestion de la sélection des méthodes
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedMethod = this.dataset.method;
+            });
+        });
+
+        // Gestion des zones de drop pour les deux images
+        setupImageUpload('dropZone1', 'image1', 'preview1', 'uploadContent1');
+        setupImageUpload('dropZone2', 'image2', 'preview2', 'uploadContent2');
+
+        function setupImageUpload(dropZoneId, inputId, previewId, contentId) {
+            const dropZone = document.getElementById(dropZoneId);
+            const fileInput = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const content = document.getElementById(contentId);
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleImageSelect(files[0], preview, content);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleImageSelect(e.target.files[0], preview, content);
+                }
+            });
+        }
+
+        function handleImageSelect(file, preview, content) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    content.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Gestion du formulaire de comparaison
+        document.getElementById('similarityForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const image1 = document.getElementById('image1').files[0];
+            const image2 = document.getElementById('image2').files[0];
+
+            if (!image1 || !image2) {
+                showError('Veuillez sélectionner deux images à comparer.');
+                return;
+            }
+
+            formData.append('file1', image1);
+            formData.append('file2', image2);
+            formData.append('method', selectedMethod);
+
+            showProgress(true);
+            clearResult();
+
+            try {
+                const response = await fetch('/api/images/similarity', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displaySimilarityResult(result);
+                } else {
+                    showError(`Erreur: ${result.error || 'Erreur inconnue'}`);
+                }
+            } catch (error) {
+                showError(`Erreur de connexion: ${error.message}`);
+            } finally {
+                showProgress(false);
+            }
+        });
+
+        function showProgress(show) {
+            document.getElementById('comparisonProgress').style.display = show ? 'block' : 'none';
+        }
+
+        function clearResult() {
+            document.getElementById('comparisonResult').innerHTML = '';
+        }
+
+        function showError(message) {
+            document.getElementById('comparisonResult').innerHTML =
+                `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
+        }
+
+        function displaySimilarityResult(result) {
+            const similarity = result.similarity_score || 0;
+            const similarityPercent = Math.round(similarity * 100);
+
+            // Mettre à jour le score principal
+            document.getElementById('similarityScore').textContent = `${similarityPercent}%`;
+            document.getElementById('similarityIndicator').style.width = `${similarityPercent}%`;
+
+            // Détails par méthode
+            let detailsHtml = '<div class="row">';
+            if (result.details) {
+                Object.entries(result.details).forEach(([method, score]) => {
+                    const methodName = getMethodName(method);
+                    const percent = Math.round(score * 100);
+                    detailsHtml += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h6>${methodName}</h6>
+                                    <div class="h4 ${getScoreColor(percent)}">${percent}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            detailsHtml += '</div>';
+
+            document.getElementById('detailedResults').innerHTML = detailsHtml;
+
+            // Interprétation
+            document.getElementById('interpretation').innerHTML = getInterpretation(similarityPercent);
+
+            // Afficher les résultats
+            document.getElementById('similarityResults').style.display = 'block';
+            document.getElementById('comparisonResult').style.display = 'none';
+        }
+
+        function getMethodName(method) {
+            const names = {
+                'phash': 'Perceptual Hash',
+                'dhash': 'Difference Hash',
+                'structural': 'Similarité Structurelle'
+            };
+            return names[method] || method;
+        }
+
+        function getScoreColor(percent) {
+            if (percent >= 80) return 'text-success';
+            if (percent >= 60) return 'text-warning';
+            return 'text-danger';
+        }
+
+        function getInterpretation(percent) {
+            if (percent >= 90) {
+                return `
+                    <div class="text-success">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Images très similaires</strong><br>
+                        Les images sont probablement identiques ou très légèrement modifiées.
+                    </div>
+                `;
+            } else if (percent >= 70) {
+                return `
+                    <div class="text-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Images similaires</strong><br>
+                        Les images partagent des éléments visuels importants.
+                    </div>
+                `;
+            } else if (percent >= 50) {
+                return `
+                    <div class="text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Similarité modérée</strong><br>
+                        Quelques éléments communs mais différences notables.
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="text-danger">
+                        <i class="fas fa-times-circle"></i>
+                        <strong>Images différentes</strong><br>
+                        Les images ont peu ou pas d'éléments visuels communs.
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

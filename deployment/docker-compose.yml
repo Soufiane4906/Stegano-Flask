@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  stegano-flask:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:///instance/app.db
+      - UPLOAD_FOLDER=uploads
+      - MAX_CONTENT_LENGTH=16777216
+      - AI_MODEL_PATH=modelFakeReal.h5
+    volumes:
+      - ./uploads:/app/uploads
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+      - ./modelFakeReal.h5:/app/modelFakeReal.h5
+    restart: unless-stopped
+
+  # Service optionnel pour une base de données PostgreSQL
+  # postgres:
+  #   image: postgres:13
+  #   environment:
+  #     POSTGRES_DB: stegano_db
+  #     POSTGRES_USER: stegano_user
+  #     POSTGRES_PASSWORD: stegano_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
