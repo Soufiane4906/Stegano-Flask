@@ -109,3 +109,18 @@ Thumbs.db
 *.tmp
 temp/
 tmp/
+
+# node_modules
+node_modules/
+./node_modules/
+
+./package-lock.json
+
+# notebooks data iamge
+.notebooks\huggingface_data
+notebooks/huggingface_data/
+notebooks/ai_detection_data/
+notebooks/test_images/test_image_4.png
+test_images/clip_training/real/*
+test_images/clip_training/
+test_images/clip_training/ai_generated/*
