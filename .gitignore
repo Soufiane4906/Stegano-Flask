@@ -114,7 +114,6 @@ tmp/
 node_modules/
 ./node_modules/
 
-./package-lock.json
 
 # notebooks data iamge
 .notebooks\huggingface_data
