@@ -66,14 +66,21 @@ def init_extensions(app):
 def register_blueprints(app):
     """Enregistre les blueprints de l'application."""
     from app.api.image_routes import image_bp, init_image_api
-    from app.api.image_routes_v2 import image_bp_v2
+    from app.api.image_routes_v2 import image_bp_v2, init_image_api as init_image_api_v2
+    from app.api.jpeg_routes import jpeg_bp
+    from app.api.test_interface_routes import test_interface_bp
 
-    # Initialiser l'API d'images
+    # Initialiser l'API d'images (version 1)
     init_image_api(app)
+
+    # Initialiser l'API d'images (version 2)
+    init_image_api_v2(app)
 
     # Enregistrer les blueprints
     app.register_blueprint(image_bp)
     app.register_blueprint(image_bp_v2)
+    app.register_blueprint(jpeg_bp)
+    app.register_blueprint(test_interface_bp)
 
     # Routes pour les pages HTML
     @app.route('/')

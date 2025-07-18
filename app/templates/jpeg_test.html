@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test JPEG Stéganographie - Interface Web</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="file"], input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #ecf0f1;
+            padding: 15px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .test-content {
+            padding: 20px;
+        }
+        .progress {
+            display: none;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .file-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .method-buttons {
+            margin: 10px 0;
+        }
+        .method-buttons button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Interface de Test - JPEG Stéganographie</h1>
+        <p style="text-align: center; color: #7f8c8d;">
+            Interface web pour tester l'API de stéganographie JPEG avec méthodes EXIF et LSB
+        </p>
+    </div>
+
+    <div class="grid">
+        <!-- Section 1: Méthodes disponibles -->
+        <div class="test-section">
+            <div class="test-header">📚 1. Méthodes Disponibles</div>
+            <div class="test-content">
+                <button onclick="getMethods()">Obtenir les Méthodes</button>
+                <div class="progress" id="methods-progress">Récupération des méthodes...</div>
+                <div class="result" id="methods-result"></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Analyse de capacité -->
+        <div class="test-section">
+            <div class="test-header">📊 2. Analyse de Capacité</div>
+            <div class="test-content">
+                <div class="form-group">
+                    <label for="capacity-file">Sélectionner une image JPEG:</label>
+                    <input type="file" id="capacity-file" accept=".jpg,.jpeg" onchange="showFileInfo('capacity-file', 'capacity-info')">
+                    <div class="file-info" id="capacity-info" style="display: none;"></div>
+                </div>
+                <button onclick="analyzeCapacity()">Analyser la Capacité</button>
+                <div class="progress" id="capacity-progress">Analyse en cours...</div>
+                <div class="result" id="capacity-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Dissimulation de message -->
+    <div class="test-section">
+        <div class="test-header">🔐 3. Dissimulation de Message</div>
+        <div class="test-content">
+            <div class="grid">
+                <div>
+                    <div class="form-group">
+                        <label for="hide-file">Image source:</label>
+                        <input type="file" id="hide-file" accept=".jpg,.jpeg" onchange="showFileInfo('hide-file', 'hide-info')">
+                        <div class="file-info" id="hide-info" style="display: none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hide-message">Message à dissimuler:</label>
+                        <textarea id="hide-message" placeholder="Entrez votre message secret ici...">Message de test depuis l'interface web 🔒</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Méthode de dissimulation:</label>
+                        <div class="method-buttons">
+                            <button onclick="hideMessage('exif')">Méthode EXIF</button>
+                            <button onclick="hideMessage('lsb')">Méthode LSB</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="progress" id="hide-progress">Dissimulation en cours...</div>
+                    <div class="result" id="hide-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Extraction de message -->
+    <div class="test-section">
+        <div class="test-header">🔍 4. Extraction de Message</div>
+        <div class="test-content">
+            <div class="grid">
+                <div>
+                    <div class="form-group">
+                        <label for="extract-file">Image avec message caché:</label>
+                        <input type="file" id="extract-file" accept=".jpg,.jpeg" onchange="showFileInfo('extract-file', 'extract-info')">
+                        <div class="file-info" id="extract-info" style="display: none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Méthode d'extraction:</label>
+                        <div class="method-buttons">
+                            <button onclick="extractMessage('exif')">Extraire EXIF</button>
+                            <button onclick="extractMessage('lsb')">Extraire LSB</button>
+                            <button onclick="extractMessage('auto')">Auto-détection</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="progress" id="extract-progress">Extraction en cours...</div>
+                    <div class="result" id="extract-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: Signature stéganographique -->
+    <div class="test-section">
+        <div class="test-header">✍️ 5. Signature Stéganographique</div>
+        <div class="test-content">
+            <div class="grid">
+                <div>
+                    <h3>Créer une signature</h3>
+                    <div class="form-group">
+                        <label for="sign-file">Image à signer:</label>
+                        <input type="file" id="sign-file" accept=".jpg,.jpeg" onchange="showFileInfo('sign-file', 'sign-info')">
+                        <div class="file-info" id="sign-info" style="display: none;"></div>
+                    </div>
+                    <button onclick="createSignature()">Créer la Signature</button>
+                    <div class="progress" id="sign-progress">Signature en cours...</div>
+                    <div class="result" id="sign-result"></div>
+                </div>
+                <div>
+                    <h3>Vérifier une signature</h3>
+                    <div class="form-group">
+                        <label for="verify-file">Image signée:</label>
+                        <input type="file" id="verify-file" accept=".jpg,.jpeg" onchange="showFileInfo('verify-file', 'verify-info')">
+                        <div class="file-info" id="verify-info" style="display: none;"></div>
+                    </div>
+                    <button onclick="verifySignature()">Vérifier la Signature</button>
+                    <div class="progress" id="verify-progress">Vérification en cours...</div>
+                    <div class="result" id="verify-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 6: Test complet automatique -->
+    <div class="test-section">
+        <div class="test-header">🧪 6. Test Complet Automatique</div>
+        <div class="test-content">
+            <p>Effectue un test complet de toutes les fonctionnalités avec une image.</p>
+            <div class="form-group">
+                <label for="full-test-file">Image pour test complet:</label>
+                <input type="file" id="full-test-file" accept=".jpg,.jpeg" onchange="showFileInfo('full-test-file', 'full-test-info')">
+                <div class="file-info" id="full-test-info" style="display: none;"></div>
+            </div>
+            <button onclick="runFullTest()">🚀 Lancer le Test Complet</button>
+            <div class="progress" id="full-test-progress">Test en cours...</div>
+            <div class="result" id="full-test-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v2/jpeg';
+
+        function showProgress(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function hideProgress(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function showResult(id, content, type = 'info') {
+            const element = document.getElementById(id);
+            element.className = `result ${type}`;
+            element.innerHTML = content;
+            element.style.display = 'block';
+        }
+
+        function showFileInfo(fileInputId, infoId) {
+            const fileInput = document.getElementById(fileInputId);
+            const infoDiv = document.getElementById(infoId);
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const sizeKB = (file.size / 1024).toFixed(2);
+                infoDiv.innerHTML = `
+                    📁 <strong>${file.name}</strong><br>
+                    📏 Taille: ${sizeKB} KB<br>
+                    📅 Modifié: ${new Date(file.lastModified).toLocaleString()}
+                `;
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        async function getMethods() {
+            showProgress('methods-progress');
+            try {
+                const response = await fetch(`${API_BASE}/methods`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    let content = '<h4>✅ Méthodes disponibles:</h4><ul>';
+                    for (const [method, info] of Object.entries(data.methods)) {
+                        content += `<li><strong>${method}</strong>: ${info.description}</li>`;
+                    }
+                    content += '</ul>';
+                    showResult('methods-result', content, 'success');
+                } else {
+                    throw new Error(data.error || 'Erreur inconnue');
+                }
+            } catch (error) {
+                showResult('methods-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('methods-progress');
+            }
+        }
+
+        async function analyzeCapacity() {
+            const fileInput = document.getElementById('capacity-file');
+            if (!fileInput.files.length) {
+                showResult('capacity-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            showProgress('capacity-progress');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze_capacity`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    const analysis = data.capacity_analysis;
+                    const content = `
+                        <h4>✅ Analyse de capacité réussie:</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                            <p><strong>📤 Capacité EXIF:</strong> ${analysis.exif_capacity || analysis.capacity_exif_bytes || 'N/A'} caractères</p>
+                            <p><strong>📤 Capacité LSB:</strong> ${analysis.lsb_capacity || analysis.capacity_lsb_bytes || 'N/A'} caractères</p>
+                            <p><strong>📄 Fichier:</strong> ${data.filename}</p>
+                            <p><strong>📏 Dimensions:</strong> ${analysis.image_info ? analysis.image_info.width + ' x ' + analysis.image_info.height : analysis.image_dimensions || 'N/A'} pixels</p>
+                            <p><strong>📊 Méthode recommandée:</strong> ${analysis.recommended_method || 'N/A'}</p>
+                            <p><strong>📏 Taille fichier:</strong> ${analysis.file_size ? Math.round(analysis.file_size/1024) + ' KB' : 'N/A'}</p>
+                        </div>
+                    `;
+                    showResult('capacity-result', content, 'success');
+                } else {
+                    throw new Error(data.error || 'Erreur d\'analyse');
+                }
+            } catch (error) {
+                showResult('capacity-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('capacity-progress');
+            }
+        }
+
+        async function hideMessage(method) {
+            const fileInput = document.getElementById('hide-file');
+            const messageInput = document.getElementById('hide-message');
+
+            if (!fileInput.files.length) {
+                showResult('hide-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            if (!messageInput.value.trim()) {
+                showResult('hide-result', '❌ Veuillez entrer un message', 'error');
+                return;
+            }
+
+            showProgress('hide-progress');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('message', messageInput.value);
+            formData.append('method', method);
+
+            try {
+                const response = await fetch(`${API_BASE}/hide_message`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    const content = `
+                        <h4>✅ Message dissimulé avec succès (${method.toUpperCase()}):</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                            <p><strong>📄 Fichier créé:</strong> ${data.output_filename}</p>
+                            <p><strong>📝 Message:</strong> "${data.message}" (${data.message.length} caractères)</p>
+                            <p><strong>🔧 Méthode:</strong> ${data.method.toUpperCase()}</p>
+                        </div>
+                        <p><em>💡 Vous pouvez maintenant tester l'extraction avec ce fichier</em></p>
+                    `;
+                    showResult('hide-result', content, 'success');
+                } else {
+                    throw new Error(data.error || 'Erreur de dissimulation');
+                }
+            } catch (error) {
+                showResult('hide-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('hide-progress');
+            }
+        }
+
+        async function extractMessage(method) {
+            const fileInput = document.getElementById('extract-file');
+
+            if (!fileInput.files.length) {
+                showResult('extract-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            showProgress('extract-progress');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('method', method);
+
+            try {
+                const response = await fetch(`${API_BASE}/extract_message`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (data.message) {
+                        const content = `
+                            <h4>✅ Message extrait avec succès:</h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                                <p><strong>💬 Message trouvé:</strong></p>
+                                <div style="background: white; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                                    "${data.message}"
+                                </div>
+                                <p><strong>🔧 Méthode utilisée:</strong> ${data.method.toUpperCase()}</p>
+                                <p><strong>📏 Longueur:</strong> ${data.message.length} caractères</p>
+                            </div>
+                        `;
+                        showResult('extract-result', content, 'success');
+                    } else {
+                        showResult('extract-result', '⚠️ Aucun message trouvé dans cette image', 'info');
+                    }
+                } else {
+                    throw new Error(data.error || 'Erreur d\'extraction');
+                }
+            } catch (error) {
+                showResult('extract-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('extract-progress');
+            }
+        }
+
+        async function createSignature() {
+            const fileInput = document.getElementById('sign-file');
+
+            if (!fileInput.files.length) {
+                showResult('sign-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            showProgress('sign-progress');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch(`${API_BASE}/create_signature`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    const content = `
+                        <h4>✅ Signature créée avec succès:</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                            <p><strong>📄 Fichier signé:</strong> ${data.signed_filename}</p>
+                            <p><strong>🔐 Signature:</strong> ${data.signature.substring(0, 50)}...</p>
+                            <p><strong>📅 Timestamp:</strong> ${data.timestamp}</p>
+                        </div>
+                        <p><em>💡 Vous pouvez maintenant vérifier cette signature</em></p>
+                    `;
+                    showResult('sign-result', content, 'success');
+                } else {
+                    throw new Error(data.error || 'Erreur de signature');
+                }
+            } catch (error) {
+                showResult('sign-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('sign-progress');
+            }
+        }
+
+        async function verifySignature() {
+            const fileInput = document.getElementById('verify-file');
+
+            if (!fileInput.files.length) {
+                showResult('verify-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            showProgress('verify-progress');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch(`${API_BASE}/verify_signature`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    const result = data.verification_result;
+                    const isValid = result.verified;
+                    const content = `
+                        <h4>${isValid ? '✅' : '❌'} Vérification ${isValid ? 'réussie' : 'échouée'}:</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                            <p><strong>🔍 Résultat:</strong> ${isValid ? 'Signature valide' : 'Signature invalide'}</p>
+                            ${result.signature ? `<p><strong>🔐 Signature trouvée:</strong> ${result.signature.substring(0, 50)}...</p>` : ''}
+                            ${result.timestamp ? `<p><strong>📅 Timestamp:</strong> ${result.timestamp}</p>` : ''}
+                            ${result.error ? `<p><strong>⚠️ Erreur:</strong> ${result.error}</p>` : ''}
+                        </div>
+                    `;
+                    showResult('verify-result', content, isValid ? 'success' : 'error');
+                } else {
+                    throw new Error(data.error || 'Erreur de vérification');
+                }
+            } catch (error) {
+                showResult('verify-result', `❌ Erreur: ${error.message}`, 'error');
+            } finally {
+                hideProgress('verify-progress');
+            }
+        }
+
+        async function runFullTest() {
+            const fileInput = document.getElementById('full-test-file');
+
+            if (!fileInput.files.length) {
+                showResult('full-test-result', '❌ Veuillez sélectionner une image', 'error');
+                return;
+            }
+
+            showProgress('full-test-progress');
+            let results = [];
+
+            try {
+                // Test 1: Analyse de capacité
+                const capacityFormData = new FormData();
+                capacityFormData.append('file', fileInput.files[0]);
+
+                const capacityResponse = await fetch(`${API_BASE}/analyze_capacity`, {
+                    method: 'POST',
+                    body: capacityFormData
+                });
+                const capacityData = await capacityResponse.json();
+
+                if (capacityResponse.ok) {
+                    results.push(`✅ Analyse de capacité: EXIF=${capacityData.capacity_analysis.exif_capacity}, LSB=${capacityData.capacity_analysis.lsb_capacity}`);
+                } else {
+                    results.push(`❌ Analyse de capacité: ${capacityData.error}`);
+                }
+
+                // Test 2: Dissimulation EXIF
+                const hideFormData = new FormData();
+                hideFormData.append('file', fileInput.files[0]);
+                hideFormData.append('message', 'Test automatique complet 🧪');
+                hideFormData.append('method', 'exif');
+
+                const hideResponse = await fetch(`${API_BASE}/hide_message`, {
+                    method: 'POST',
+                    body: hideFormData
+                });
+                const hideData = await hideResponse.json();
+
+                if (hideResponse.ok) {
+                    results.push(`✅ Dissimulation EXIF: ${hideData.output_filename}`);
+
+                    // Test 3: Extraction EXIF
+                    // Note: Ceci nécessiterait de récupérer le fichier créé,
+                    // ce qui est complexe dans une interface web simple
+                    results.push(`ℹ️ Extraction: Nécessite le fichier créé (${hideData.output_filename})`);
+                } else {
+                    results.push(`❌ Dissimulation EXIF: ${hideData.error}`);
+                }
+
+                // Test 4: Signature
+                const signFormData = new FormData();
+                signFormData.append('file', fileInput.files[0]);
+
+                const signResponse = await fetch(`${API_BASE}/create_signature`, {
+                    method: 'POST',
+                    body: signFormData
+                });
+                const signData = await signResponse.json();
+
+                if (signResponse.ok) {
+                    results.push(`✅ Signature créée: ${signData.signed_filename}`);
+                } else {
+                    results.push(`❌ Signature: ${signData.error}`);
+                }
+
+                const content = `
+                    <h4>🧪 Résultats du test complet:</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                        ${results.map(result => `<p>${result}</p>`).join('')}
+                    </div>
+                    <p><em>💡 Test terminé. Vérifiez le dossier uploads/ pour les fichiers générés.</em></p>
+                `;
+                showResult('full-test-result', content, 'info');
+
+            } catch (error) {
+                showResult('full-test-result', `❌ Erreur durant le test: ${error.message}`, 'error');
+            } finally {
+                hideProgress('full-test-progress');
+            }
+        }
+
+        // Charger les méthodes au démarrage
+        window.onload = function() {
+            getMethods();
+        };
+    </script>
+</body>
+</html>

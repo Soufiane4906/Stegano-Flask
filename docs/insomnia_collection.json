@@ -1,0 +1,358 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-07-17T22:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "req_analyze_capacity",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638400000,
+      "created": 1689638400000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/analyze_capacity",
+      "name": "1. Analyze JPEG Capacity",
+      "description": "Analyse la capacité de dissimulation d'une image JPEG pour les méthodes EXIF et LSB.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG à analyser",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638400000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_hide_message_exif",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638500000,
+      "created": 1689638500000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/hide_message",
+      "name": "2. Hide Message - EXIF",
+      "description": "Cache un message dans les métadonnées EXIF d'une image JPEG.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG source",
+            "type": "file",
+            "fileName": ""
+          },
+          {
+            "id": "pair_message",
+            "name": "message",
+            "value": "Ceci est un message secret caché dans EXIF ! 🔒",
+            "description": "Message à cacher",
+            "type": "text"
+          },
+          {
+            "id": "pair_method",
+            "name": "method",
+            "value": "exif",
+            "description": "Méthode de dissimulation",
+            "type": "text"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638500000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_hide_message_lsb",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638600000,
+      "created": 1689638600000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/hide_message",
+      "name": "3. Hide Message - LSB",
+      "description": "Cache un message plus long avec la méthode LSB dans une image JPEG.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG source (de préférence grande)",
+            "type": "file",
+            "fileName": ""
+          },
+          {
+            "id": "pair_message",
+            "name": "message",
+            "value": "Message plus long pour tester la méthode LSB (Least Significant Bit). Cette méthode permet de cacher beaucoup plus de données en modifiant les bits de poids faible des pixels. Idéal pour les longs textes et données importantes ! 🔢💾",
+            "description": "Message long à cacher",
+            "type": "text"
+          },
+          {
+            "id": "pair_method",
+            "name": "method",
+            "value": "lsb",
+            "description": "Méthode de dissimulation",
+            "type": "text"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638600000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_extract_message_exif",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638700000,
+      "created": 1689638700000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/extract_message",
+      "name": "4. Extract Message - EXIF",
+      "description": "Extrait un message caché dans les métadonnées EXIF.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG avec message EXIF caché",
+            "type": "file",
+            "fileName": ""
+          },
+          {
+            "id": "pair_method",
+            "name": "method",
+            "value": "exif",
+            "description": "Méthode d'extraction",
+            "type": "text"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638700000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_extract_message_lsb",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638800000,
+      "created": 1689638800000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/extract_message",
+      "name": "5. Extract Message - LSB",
+      "description": "Extrait un message caché avec la méthode LSB.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG avec message LSB caché",
+            "type": "file",
+            "fileName": ""
+          },
+          {
+            "id": "pair_method",
+            "name": "method",
+            "value": "lsb",
+            "description": "Méthode d'extraction",
+            "type": "text"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_create_signature",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689638900000,
+      "created": 1689638900000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/create_signature",
+      "name": "6. Create Signature",
+      "description": "Crée une signature stéganographique pour vérifier l'intégrité de l'image.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG à signer",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689638900000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_verify_signature",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689639000000,
+      "created": 1689639000000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/verify_signature",
+      "name": "7. Verify Signature",
+      "description": "Vérifie l'intégrité d'une signature stéganographique.",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "id": "pair_file",
+            "name": "file",
+            "value": "",
+            "description": "Image JPEG signée à vérifier",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689639000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_methods",
+      "parentId": "fld_jpeg_api",
+      "modified": 1689639100000,
+      "created": 1689639100000,
+      "url": "{{ _.base_url }}{{ _.api_path }}/methods",
+      "name": "8. Get Available Methods",
+      "description": "Retourne la liste des méthodes de stéganographie disponibles.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1689639100000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_jpeg_api",
+      "parentId": "wrk_main",
+      "modified": 1689638300000,
+      "created": 1689638300000,
+      "name": "JPEG Steganography API",
+      "description": "Collection de tests pour l'API de stéganographie JPEG",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1689638300000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "wrk_main",
+      "parentId": null,
+      "modified": 1689638200000,
+      "created": 1689638200000,
+      "name": "Stegano-Flask API",
+      "description": "Tests pour l'application Stegano-Flask",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_base",
+      "parentId": "wrk_main",
+      "modified": 1689638250000,
+      "created": 1689638250000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:5000",
+        "api_path": "/api/v2/jpeg"
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "api_path"]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1689638250000,
+      "_type": "environment"
+    }
+  ]
+}
